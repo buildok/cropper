@@ -40,8 +40,6 @@ var CropperObj = function(data) {
             
             var ar = $(this.srcIMG).width() / $(this.srcIMG).height();
             
-            console.log('SRC: width', $(this.srcIMG).width(), 'height', $(this.srcIMG).height(), 'aspectRatio:', ar);
-            console.log('CROP: width', this.width, 'height', this.height, 'aspectRatio', this.aspectRatio);
                        
             if(this.aspectRatio < ar) {
                 this.height = $(this.srcIMG).height();
