@@ -22,6 +22,7 @@ var CropperObj = function(data) {
         mouseX: 0,
         mouseY: 0,
         init: function() {
+            console.log('Cropper: init');
             $(this.srcIMG).css({'user-select': 'none'});
             $(sourceParent).find('.frame-shadow').width($(this.srcIMG).width()).height($(this.srcIMG).height());
             
