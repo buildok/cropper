@@ -8,15 +8,15 @@ $(window).load(function() {
     cropper.init();
     
     
-    $('.btn-crop').on('click', '', {'obj':cropper}, onCrop);    
+    $('.btn-crop').on('click', '', {'crop':cropper}, onCrop);    
 });
 
 function onCrop(e)
 {
-    var cropper = e.data.obj;
+    var crop = e.data.crop;
     
-    cropper.onCrop(function() {
-        $('.dest > .preview-image').attr('src', cropper.dataURL);
+    crop.onCrop(function() {
+        $('.dest > .preview-image').attr('src', crop.dataURL);
     });
 }
 
