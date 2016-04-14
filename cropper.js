@@ -1,5 +1,10 @@
-var CropperObj = function(data) {
-    var sourceParent = $(data.srcIMG).closest('div');
+var CropperObj = function(options) {
+    if(!options.srcIMG) {
+        return false;
+    }
+    console.log('Cropper: Wellcome!');
+    
+    var sourceParent = $(options.srcIMG).closest('div');
     var pos = $(sourceParent).css('position');
 
     if(pos != 'relative' && pos != 'fixed' && pos != 'absolute') {
@@ -8,64 +13,39 @@ var CropperObj = function(data) {
     
     $(sourceParent).append('<div class="frame-shadow"><div class="crop-frame"></div></div>');
     
-    
-    return {
-        mime: 'image/png',
-        srcIMG: data.srcIMG,
-        previewIMG: data.previewIMG,
-        width: data.width,
-        height: data.height,
-        aspectRatio: data.width / data.height,
-        fixed: data.fixed,
+    var cropAPI = {
+        mime: options.mime || 'image/png',
+        srcIMG: options.srcIMG,
+        aspectRatio: ((options.aspectRatio === Infinity) ? false : options.aspectRatio) || 1,
+        fixed: options.fixed || false,
         cropFrame: $(sourceParent).find('.crop-frame'),
         dataURL:'',
-        mouseX: 0,
-        mouseY: 0,
+        _mouseX: 0,
+        _mouseY: 0,
         init: function() {
-            console.log('Cropper: init');
-            $(this.srcIMG).css({'user-select': 'none'});
-            $(sourceParent).find('.frame-shadow').width($(this.srcIMG).width()).height($(this.srcIMG).height());
+            console.log(this);
             
+            $(this.srcIMG).css({'user-select': 'none'});
+            
+            $(sourceParent).find('.frame-shadow').width($(this.srcIMG).width()).height($(this.srcIMG).height());
             
             $(document).on('dragstart', '', {}, function(e) {
                 return false; 
             });
             
-            if(this.fixed) {
-                $(this.cropFrame).addClass('fixed');
-                $(this.cropFrame).append('<span class="n"/><span class="e"/><span class="s"/><span class="w"/>');
-            } else {
-                $(this.cropFrame).append('<span class="nw"/><span class="ne"/><span class="se"/><span class="sw"/>');
-            }
+            this._initFrame();
             
-            var ar = $(this.srcIMG).width() / $(this.srcIMG).height();
-            
-                       
-            if(this.aspectRatio < ar) {
-                this.height = $(this.srcIMG).height();
-                this.width = this.height * this.aspectRatio;
-            } else {
-                this.width = $(this.srcIMG).width();
-                this.height = this.width / this.aspectRatio;
-            }
-            
-            $(this.cropFrame).width(this.width);
-            $(this.cropFrame).height(this.height);
-            
-            $(this.cropFrame).on('mousedown', '', {'crop':this}, this.onStartMove);            
-            $(this.cropFrame).on('mousedown', 'span', {'crop':this}, this.onMarkerStartMove);
+
         },
         onStartMove: function(e) {
             if(!$(this).hasClass('move')) {
                 var crop = e.data.crop;
                 
-                crop.mouseX = e.pageX;
-                crop.mouseY = e.pageY;
+                crop._mouseX = e.pageX;
+                crop._mouseY = e.pageY;
                
                 $(this).addClass('move');
-                $(document).off('mousemove');
                 $(document).on('mousemove', '', {'crop':crop}, crop.onMove);
-                $(document).off('mouseup');
                 $(document).on('mouseup', '', {'crop':crop}, crop.onStopMove);                
             }            
         },
@@ -73,55 +53,55 @@ var CropperObj = function(data) {
            var crop = e.data.crop;
            
            if($(crop.cropFrame).hasClass('move')) {   
-                $(this).off('mousemove');
+                $(document).off('mousemove');
+                $(document).off('mouseup');
                 $(crop.cropFrame).removeClass('move');
             }            
         },
         onMove: function(e) {
             var crop = e.data.crop;
             var pos = $(crop.cropFrame).offset();
-            var dX = e.pageX - crop.mouseX;
-            var dY = e.pageY - crop.mouseY;
+            var dX = e.pageX - crop._mouseX;
+            var dY = e.pageY - crop._mouseY;
             
-            var crd = {
-                x1: pos.left + dX,
-                y1: pos.top + dY,
-                x2: pos.left + dX + crop.width,
-                y2: pos.top + dY + crop.height
-            }
-            if(crd.x1 < $(crop.srcIMG).offset().left) {
-                crd.x1 = $(crop.srcIMG).offset().left;
+            var dt = {
+                left: pos.left + dX,
+                top: pos.top + dY,
+                width: pos.left + dX + crop.width,
+                height: pos.top + dY + crop.height
             }
             
-            if(crd.y1 < $(crop.srcIMG).offset().top) {
-                crd.y1 = $(crop.srcIMG).offset().top;
+            if(dt.left < $(crop.srcIMG).offset().left) {
+                dt.left = $(crop.srcIMG).offset().left;
             }
             
-            if(crd.x2 > $(crop.srcIMG).offset().left + $(crop.srcIMG).width()) {
-                crd.x1 = $(crop.srcIMG).offset().left + $(crop.srcIMG).width() - crop.width;
+            if(dt.top < $(crop.srcIMG).offset().top) {
+                dt.top = $(crop.srcIMG).offset().top;
             }
             
-            if(crd.y2 > $(crop.srcIMG).offset().top + $(crop.srcIMG).height()) {
-                crd.y1 = $(crop.srcIMG).offset().top + $(crop.srcIMG).height() - crop.height;
+            if(dt.width > $(crop.srcIMG).offset().left + $(crop.srcIMG).width()) {
+                dt.left = $(crop.srcIMG).offset().left + $(crop.srcIMG).width() - crop.width;
+            }
+            
+            if(dt.height > $(crop.srcIMG).offset().top + $(crop.srcIMG).height()) {
+                dt.top = $(crop.srcIMG).offset().top + $(crop.srcIMG).height() - crop.height;
             }
       
-            crop.mouseX = e.pageX;
-            crop.mouseY = e.pageY;
+            crop._mouseX = e.pageX;
+            crop._mouseY = e.pageY;
         
-            $(crop.cropFrame).offset({'top':crd.y1, 'left':crd.x1});
+            $(crop.cropFrame).offset({'top':dt.top, 'left':dt.left});
         },
         onMarkerStartMove: function(e) {
             var crop = e.data.crop;
             
             if(!$(crop.cropFrame).hasClass('move')) {                
-                crop.mouseX = e.pageX;
-                crop.mouseY = e.pageY;
+                crop._mouseX = e.pageX;
+                crop._mouseY = e.pageY;
                 
                 $(crop.cropFrame).addClass('move');
-                $(document).off('mousemove');
-                $(document).on('mousemove', '', {'crop':crop, 'marker':$(this)}, crop.onMarkerMove);
-                $(document).off('mouseup');
-                $(document).on('mouseup', '', {'crop':crop, 'marker':$(this)}, crop.onMarkerStopMove);                
+                $(document).on('mousemove', '', {'crop':crop, 'marker':$(this).attr('class')}, crop.onMarkerMove);
+                $(document).on('mouseup', '', {'crop':crop, 'marker':$(this).attr('class')}, crop.onMarkerStopMove);                
             }
         },
         onMarkerStopMove: function(e) {
@@ -135,24 +115,14 @@ var CropperObj = function(data) {
         },
         onMarkerMove: function (e) {            
             var crop = e.data.crop;
-            var dX = e.pageX - crop.mouseX;
-            var dY = e.pageY - crop.mouseY;
- 
-            var marker = e.data.marker;
-            var pos = $(marker).offset();
+            var dX = e.pageX - crop._mouseX;
+            var dY = e.pageY - crop._mouseY;
+            var dt = $(crop.cropFrame).offset();
              
-            var dt = {
-                top: 0,
-                left: 0,
-                width: 0,
-                height: 0
-            }
- 
-            
-            switch ($(marker).attr('class')) {
+            switch (e.data.marker) {
                 case 'nw':
-                    dt.top = $(crop.cropFrame).offset().top + dY;
-                    dt.left = $(crop.cropFrame).offset().left + dX;                  
+                    dt.top = dt.top + dY;
+                    dt.left = dt.left + dX;                  
                     
                     if(dt.left < $(crop.srcIMG).offset().left) {
                         dt.left = $(crop.srcIMG).offset().left;
@@ -174,9 +144,8 @@ var CropperObj = function(data) {
                     break;
                     
                 case 'ne':
-                    dt.top = $(crop.cropFrame).offset().top + dY;
-                    dt.left = $(crop.cropFrame).offset().left;
-                    
+                    dt.top = dt.top + dY;
+                   
                     if(dt.top < $(crop.srcIMG).offset().top) {
                         dt.top = $(crop.srcIMG).offset().top;
                         dt.height = crop.height;
@@ -195,8 +164,7 @@ var CropperObj = function(data) {
                     break;
                     
                 case 'se':
-                    dt.top = $(crop.cropFrame).offset().top + dY;
-                    dt.left = $(crop.cropFrame).offset().left;
+                    dt.top = dt.top + dY;
                     dt.width = crop.width + dX;
                     dt.height = crop.height + dY;
                     
@@ -215,8 +183,8 @@ var CropperObj = function(data) {
                     break;
                     
                 case 'sw':
-                    dt.top = $(crop.cropFrame).offset().top + dY;
-                    dt.left = $(crop.cropFrame).offset().left + dX;
+                    dt.top = dt.top + dY;
+                    dt.left = dt.left + dX;
                     dt.width = crop.width - dX;
                     dt.height = crop.height + dY;    
                     
@@ -235,9 +203,8 @@ var CropperObj = function(data) {
                     break;
                     
                 case 'n':
-                    dt.top = pos.top + dY;
-                    dt.left = $(crop.cropFrame).offset().left;
-                    
+                    dt.top = dt.top + dY;
+
                     if(dt.top < $(crop.srcIMG).offset().top) {
                         dt.top = $(crop.srcIMG).offset().top;
                         dt.height = crop.height;
@@ -256,10 +223,7 @@ var CropperObj = function(data) {
                     break;
                     
                 case 'e':
-                    dt.top = $(crop.cropFrame).offset().top;
-                    dt.left = $(crop.cropFrame).offset().left;
-                    
-                    dt.width = $(crop.cropFrame).width() + dX;
+                    dt.width = crop.width + dX;
                     
                     if(dt.left + dt.width > $(crop.srcIMG).offset().left + $(crop.srcIMG).width()) {
                         dt.width = $(crop.srcIMG).offset().left + $(crop.srcIMG).width() - dt.left;
@@ -277,11 +241,8 @@ var CropperObj = function(data) {
                     crop.height = crop.width / crop.aspectRatio;
                     break;
                     
-                case 's':
-                    dt.top = $(crop.cropFrame).offset().top;
-                    dt.left = $(crop.cropFrame).offset().left;
-                    
-                    dt.height = $(crop.cropFrame).height() + dY;
+                case 's':                    
+                    dt.height = crop.height + dY;
                     
                     if(dt.top + dt.height > $(crop.srcIMG).offset().top + $(crop.srcIMG).height()) {
                         dt.height = $(crop.srcIMG).offset().top + $(crop.srcIMG).height() - dt.top;
@@ -295,14 +256,12 @@ var CropperObj = function(data) {
                         }
                     }
                     
-                    
                     crop.height = dt.height;
                     crop.width = crop.height * crop.aspectRatio;
                     break;
                     
                 case 'w':
-                    dt.top = $(crop.cropFrame).offset().top;
-                    dt.left = $(crop.cropFrame).offset().left + dX;
+                    dt.left = dt.left + dX;
                     
                     if(dt.left < $(crop.srcIMG).offset().left) {
                         dt.left = $(crop.srcIMG).offset().left;
@@ -318,6 +277,7 @@ var CropperObj = function(data) {
                             dt.width = dt.height * crop.aspectRatio;
                         }
                     }
+                    
                     crop.width = dt.width;
                     crop.height = dt.height;
                     $(crop.cropFrame).offset({'left':dt.left});
@@ -327,8 +287,8 @@ var CropperObj = function(data) {
                     break;
             }
             
-            crop.mouseX = e.pageX;
-            crop.mouseY = e.pageY;
+            crop._mouseX = e.pageX;
+            crop._mouseY = e.pageY;
             
             $(crop.cropFrame).width(crop.width);
             $(crop.cropFrame).height(crop.height);          
@@ -345,7 +305,7 @@ var CropperObj = function(data) {
                 canvas.height = imgData.Height;
                 
                 var context = canvas.getContext('2d');
-                context.drawImage(imageObj, imgData.Left, imgData.Top, imgData.Width, imgData.Height, 0, 0, imgData.Width, imgData.Height);
+                context.drawImage(this, imgData.Left, imgData.Top, imgData.Width, imgData.Height, 0, 0, imgData.Width, imgData.Height);
                 crop.dataURL = canvas.toDataURL(crop.mime, 1.0);
                 
                 callback();                
@@ -363,6 +323,49 @@ var CropperObj = function(data) {
                 Width: $(this.cropFrame).width() * dX,
                 Height: $(this.cropFrame).height() * dY
             }            
+        },
+        reset: function(options) {
+            this.mime = options.mime || this.mime;
+            this.aspectRatio = ((options.aspectRatio === Infinity) ? false : options.aspectRatio) || this.aspectRatio;
+            this.fixed = options.fixed || this.fixed;
+            this.dataURL = '';
+            this._mouseX = 0;
+            this._mouseY = 0;
+            this._initFrame();
+        },
+        _initFrame: function() {
+            $(this.cropFrame).off('mousedown');
+            
+            $(this.cropFrame).find('span').remove();
+            
+            if(this.fixed) {
+                $(this.cropFrame).append('<span class="n"/><span class="e"/><span class="s"/><span class="w"/>');
+                
+                var ar = $(this.srcIMG).width() / $(this.srcIMG).height();
+            
+                if(this.aspectRatio < ar) {
+                    this.height = $(this.srcIMG).height();
+                    this.width = this.height * this.aspectRatio;
+                } else {
+                    this.width = $(this.srcIMG).width();
+                    this.height = this.width / this.aspectRatio;
+                }
+            } else {
+                $(this.cropFrame).append('<span class="nw"/><span class="ne"/><span class="se"/><span class="sw"/>');
+                
+                this.height = $(this.srcIMG).height();
+                this.width = $(this.srcIMG).width();
+            }
+
+            $(this.cropFrame).width(this.width);
+            $(this.cropFrame).height(this.height);
+            
+            $(this.cropFrame).on('mousedown', '', {'crop':this}, this.onStartMove);            
+            $(this.cropFrame).on('mousedown', 'span', {'crop':this}, this.onMarkerStartMove);            
         }
     }
+    
+    cropAPI.init();
+    
+    return cropAPI;
 }
