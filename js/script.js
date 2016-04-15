@@ -1,15 +1,23 @@
 $(window).load(function() {
     var cropper = new CropperObj({
-        width: 5, 
-        height: 3,
+        aspectRatio: 5 / 4,
         fixed: true,
         srcIMG: '.source-image',
-    });
-    cropper.init();
-    
+    });    
     
     $('.btn-crop').on('click', '', {'crop':cropper}, onCrop);    
+    $('.btn-reset').on('click', '', {'crop':cropper}, onResetCrop)
 });
+
+function onResetCrop(e)
+{
+    var crop = e.data.crop;
+    
+    crop.reset({
+       fixed: $('#crop_fixed').val(),
+       aspectRatio:  $('#crop_width').val() / $('#crop_height').val(),
+    });
+}
 
 function onCrop(e)
 {

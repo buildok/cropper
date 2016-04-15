@@ -1,23 +1,65 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <link rel="stylesheet" href="css/style.css"/>
-    <link rel="stylesheet" href="https://rawgit.com/buildok/cropper/master/cropper.css"/>
-
+    <title>Cropper by buildok</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <link rel="stylesheet" href="stylesheets/cropper.css"/>
+    <link rel="stylesheet" href="stylesheets/style.css"/>
 </head>
 <body>
-    <div class="dest">
-        <img class="preview-image" src="" alt="preview image" />
-    </div>
-    <div class="mdl-block">
-        <span class="btn btn-crop">Crop</span>
-    </div>
+    <div class="wrapper">
+      <header>
+        <h1>Cropper</h1>
+        <p></p>
+
+        <p class="view"><a href="https://github.com/buildok/cropper">View the Project on GitHub <small>buildok/cropper</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/buildok/cropper/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/buildok/cropper/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/buildok/cropper">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
     <div class="source">
-        <img class="source-image" src="img/mz.jpg" alt="source image" />
+        <img class="source-image" src="img/mz.jpg" alt="Image" />
     </div>
     
+    
+    <div class="mdl-block">
+        <ul class="crop-data">
+            <li>
+                <label for="crop_width">Width</label>
+                <input id="crop_width" type="text" value="5"/>
+            </li>
+            <li>
+                <label for="crop_height">Heght</label>
+                <input id="crop_height" type="text" value="4"/>
+            </li>
+            <li>
+                <label for="crop_fixed">Fixed</label>
+                <input id="crop_fixed" type="text" value="true"/>
+            </li>                        
+        </ul>
+        <div class="button-block">
+            <span class="btn btn-reset">Crop init</span>
+            <span class="btn btn-crop">Crop</span>
+        </div>
+    </div>
+    <div class="dest">
+        <img class="preview-image" src="" alt="Preview image" />
+    </div>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/buildok">buildok</a></p>
+        <p><small>Hosted on GitHub Pages — Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="https://rawgit.com/buildok/cropper/master/cropper.js"></script>
-    <script src="js/script.js"></script>
+    <script src="javascripts/cropper.js"></script>
+    <script src="javascripts/script.js"></script>
 </body>
 </html>
