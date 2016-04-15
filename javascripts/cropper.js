@@ -327,11 +327,13 @@ var CropperObj = function(options) {
         reset: function(options) {
             this.mime = options.mime || this.mime;
             this.aspectRatio = ((options.aspectRatio === Infinity) ? false : options.aspectRatio) || this.aspectRatio;
-            this.fixed = options.fixed || this.fixed;
+            this.fixed = (Number(options.fixed) || options.fixed == 'true') ? true : false;//) || this.fixed;
             this.dataURL = '';
             this._mouseX = 0;
             this._mouseY = 0;
             this._initFrame();
+            
+            console.log(this);
         },
         _initFrame: function() {
             $(this.cropFrame).off('mousedown');
@@ -357,8 +359,10 @@ var CropperObj = function(options) {
                 this.width = $(this.srcIMG).width();
             }
 
+            $(this.cropFrame).offset($(this.srcIMG).offset());
             $(this.cropFrame).width(this.width);
             $(this.cropFrame).height(this.height);
+
             
             $(this.cropFrame).on('mousedown', '', {'crop':this}, this.onStartMove);            
             $(this.cropFrame).on('mousedown', 'span', {'crop':this}, this.onMarkerStartMove);            
