@@ -331,6 +331,8 @@ var CropperObj = function(options) {
             this.dataURL = '';
             this._mouseX = 0;
             this._mouseY = 0;
+            
+            $(sourceParent).find('.frame-shadow').width($(this.srcIMG).width()).height($(this.srcIMG).height());
             this._initFrame();
             
             console.log(this);
